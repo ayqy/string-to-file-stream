@@ -1,9 +1,5 @@
 'use strict';
 
-const {
-  ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE
-} = require('internal/errors').codes;
 const { Buffer } = require('buffer');
 const {
   copyObject,
@@ -67,17 +63,17 @@ function ReadStream(path, options) {
 
   if (this.start !== undefined) {
     if (typeof this.start !== 'number' || Number.isNaN(this.start)) {
-      throw new ERR_INVALID_ARG_TYPE('start', 'number', this.start);
+      throw new Error(`The start must be a number. Received type ${typeof this.start}`);
     }
     if (this.end === undefined) {
       this.end = Infinity;
     } else if (typeof this.end !== 'number' || Number.isNaN(this.end)) {
-      throw new ERR_INVALID_ARG_TYPE('end', 'number', this.end);
+      throw new Error(`The end must be a number. Received type ${typeof this.end}`);
     }
 
     if (this.start > this.end) {
       const errVal = `{start: ${this.start}, end: ${this.end}}`;
-      throw new ERR_OUT_OF_RANGE('start', '<= "end"', errVal);
+      throw new Error(`The value of "start" is out of range. It must be <= "end". Received ${errVal}`);
     }
 
     this.pos = this.start;
@@ -89,7 +85,7 @@ function ReadStream(path, options) {
   if (typeof this.end !== 'number')
     this.end = Infinity;
   else if (Number.isNaN(this.end))
-    throw new ERR_INVALID_ARG_TYPE('end', 'number', this.end);
+    throw new Error(`The end must be a number, Received type ${typeof this.end}`);
 
   if (typeof this.fd !== 'number')
     this.open();
