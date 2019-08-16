@@ -1,10 +1,6 @@
 'use strict';
 
 const { Buffer } = require('buffer');
-const {
-  copyObject,
-  getOptions,
-} = require('internal/fs/utils');
 const { Readable } = require('stream');
 const { toPathIfFileURL } = require('internal/url');
 const util = require('util');
@@ -39,7 +35,7 @@ function ReadStream(path, options) {
     return new ReadStream(path, options);
 
   // a little bit bigger buffer and water marks by default
-  options = copyObject(getOptions(options, {}));
+  options = Object.assign(options || {});
   if (options.highWaterMark === undefined)
     options.highWaterMark = 64 * 1024;
 
