@@ -1,0 +1,32 @@
+{
+  "name": "string-to-file-stream",
+  "version": "1.0.0",
+  "description": "Create file stream from string.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayqy/string-to-file-stream.git"
+  },
+  "keywords": [
+    "nodejs",
+    "string2file",
+    "string2filestream",
+    "covert",
+    "string",
+    "to",
+    "file",
+    "stream"
+  ],
+  "author": "ayqy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ayqy/string-to-file-stream/issues"
+  },
+  "homepage": "https://github.com/ayqy/string-to-file-stream#readme"
+}
