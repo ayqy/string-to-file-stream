@@ -4,13 +4,6 @@ const { Buffer } = require('buffer');
 const { Readable } = require('stream');
 const util = require('util');
 
-let fs;
-function lazyFs() {
-  if (fs === undefined)
-    fs = require('fs');
-  return fs;
-}
-
 const kMinPoolSpace = 128;
 
 let pool;
@@ -98,21 +91,15 @@ function ReadStream(input, options) {
 util.inherits(ReadStream, Readable);
 
 ReadStream.prototype.open = function() {
-  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
-    if (er) {
-      if (this.autoClose) {
-        this.destroy();
-      }
-      this.emit('error', er);
-      return;
-    }
-
+  // fake open file async
+  setTimeout((fd = Infinity) => {
+    // fake file descriptor
     this.fd = fd;
     this.emit('open', fd);
     this.emit('ready');
     // start the flow of data.
     this.read();
-  });
+  }, 0);
 };
 
 ReadStream.prototype._read = function(n) {
@@ -148,29 +135,23 @@ ReadStream.prototype._read = function(n) {
     return this.push(null);
 
   // the actual read.
-  lazyFs().read(this.fd, pool, pool.used, toRead, this.pos, (er, bytesRead) => {
-    if (er) {
-      if (this.autoClose) {
-        this.destroy();
-      }
-      this.emit('error', er);
-    } else {
-      let b = null;
-      // Now that we know how much data we have actually read, re-wind the
-      // 'used' field if we can, and otherwise allow the remainder of our
-      // reservation to be used as a new pool later.
-      if (start + toRead === thisPool.used && thisPool === pool)
-        thisPool.used += bytesRead - toRead;
-      else if (toRead - bytesRead > kMinPoolSpace)
-        poolFragments.push(thisPool.slice(start + bytesRead, start + toRead));
+  // fake read file content
+  this._fakeReadFile(this.fd, pool, pool.used, toRead, this.pos, (bytesRead) => {
+    let b = null;
+    // Now that we know how much data we have actually read, re-wind the
+    // 'used' field if we can, and otherwise allow the remainder of our
+    // reservation to be used as a new pool later.
+    if (start + toRead === thisPool.used && thisPool === pool)
+      thisPool.used += bytesRead - toRead;
+    else if (toRead - bytesRead > kMinPoolSpace)
+      poolFragments.push(thisPool.slice(start + bytesRead, start + toRead));
 
-      if (bytesRead > 0) {
-        this.bytesRead += bytesRead;
-        b = thisPool.slice(start, start + bytesRead);
-      }
-
-      this.push(b);
+    if (bytesRead > 0) {
+      this.bytesRead += bytesRead;
+      b = thisPool.slice(start, start + bytesRead);
     }
+
+    this.push(b);
   });
 
   // move the pool positions, and internal position for reading.
@@ -178,6 +159,20 @@ ReadStream.prototype._read = function(n) {
     this.pos += toRead;
   pool.used += toRead;
 };
+
+// https://nodejs.org/dist/latest-v10.x/docs/api/fs.html#fs_fs_read_fd_buffer_offset_length_position_callback
+ReadStream.prototype._fakeReadFile = function(_, buffer, offset, length, position, cb) {
+  position = position || this.input._position;
+  // fake read file async
+  setTimeout(() => {
+    let bytesRead = 0;
+    if (position < this.input.byteLength) {
+      bytesRead = this.input.copy(buffer, offset, position, position + length - 1);
+      this.input._position += bytesRead;
+    }
+    cb(bytesRead);
+  }, 0);
+}
 
 ReadStream.prototype._destroy = function(err, cb) {
   if (typeof this.fd !== 'number') {
@@ -190,13 +185,10 @@ ReadStream.prototype._destroy = function(err, cb) {
 };
 
 function closeFsStream(stream, cb, err) {
-  lazyFs().close(stream.fd, (er) => {
-    er = er || err;
-    cb(er);
+  setTimeout(() => {
     stream.closed = true;
-    if (!er)
-      stream.emit('close');
-  });
+    stream.emit('close');
+  }, 0);
 }
 
 ReadStream.prototype.close = function(cb) {
