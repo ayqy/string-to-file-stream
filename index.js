@@ -1,10 +1,6 @@
 'use strict';
 
 const {
-  FSReqWrap,
-  writeBuffers
-} = process.binding('fs');
-const {
   ERR_INVALID_ARG_TYPE,
   ERR_OUT_OF_RANGE
 } = require('internal/errors').codes;
@@ -13,7 +9,7 @@ const {
   copyObject,
   getOptions,
 } = require('internal/fs/utils');
-const { Readable, Writable } = require('stream');
+const { Readable } = require('stream');
 const { toPathIfFileURL } = require('internal/url');
 const util = require('util');
 
@@ -217,178 +213,6 @@ Object.defineProperty(ReadStream.prototype, 'pending', {
   configurable: true
 });
 
-function WriteStream(path, options) {
-  if (!(this instanceof WriteStream))
-    return new WriteStream(path, options);
-
-  options = copyObject(getOptions(options, {}));
-
-  // for backwards compat do not emit close on destroy.
-  options.emitClose = false;
-
-  Writable.call(this, options);
-
-  // path will be ignored when fd is specified, so it can be falsy
-  this.path = toPathIfFileURL(path);
-  this.fd = options.fd === undefined ? null : options.fd;
-  this.flags = options.flags === undefined ? 'w' : options.flags;
-  this.mode = options.mode === undefined ? 0o666 : options.mode;
-
-  this.start = options.start;
-  this.autoClose = options.autoClose === undefined ? true : !!options.autoClose;
-  this.pos = undefined;
-  this.bytesWritten = 0;
-  this.closed = false;
-
-  if (this.start !== undefined) {
-    if (typeof this.start !== 'number') {
-      throw new ERR_INVALID_ARG_TYPE('start', 'number', this.start);
-    }
-    if (this.start < 0) {
-      const errVal = `{start: ${this.start}}`;
-      throw new ERR_OUT_OF_RANGE('start', '>= 0', errVal);
-    }
-
-    this.pos = this.start;
-  }
-
-  if (options.encoding)
-    this.setDefaultEncoding(options.encoding);
-
-  if (typeof this.fd !== 'number')
-    this.open();
-}
-util.inherits(WriteStream, Writable);
-
-WriteStream.prototype._final = function(callback) {
-  if (this.autoClose) {
-    this.destroy();
-  }
-
-  callback();
-};
-
-WriteStream.prototype.open = function() {
-  lazyFs().open(this.path, this.flags, this.mode, (er, fd) => {
-    if (er) {
-      if (this.autoClose) {
-        this.destroy();
-      }
-      this.emit('error', er);
-      return;
-    }
-
-    this.fd = fd;
-    this.emit('open', fd);
-    this.emit('ready');
-  });
-};
-
-
-WriteStream.prototype._write = function(data, encoding, cb) {
-  if (!(data instanceof Buffer)) {
-    const err = new ERR_INVALID_ARG_TYPE('data', 'Buffer', data);
-    return this.emit('error', err);
-  }
-
-  if (typeof this.fd !== 'number') {
-    return this.once('open', function() {
-      this._write(data, encoding, cb);
-    });
-  }
-
-  lazyFs().write(this.fd, data, 0, data.length, this.pos, (er, bytes) => {
-    if (er) {
-      if (this.autoClose) {
-        this.destroy();
-      }
-      return cb(er);
-    }
-    this.bytesWritten += bytes;
-    cb();
-  });
-
-  if (this.pos !== undefined)
-    this.pos += data.length;
-};
-
-
-function writev(fd, chunks, position, callback) {
-  function wrapper(err, written) {
-    // Retain a reference to chunks so that they can't be GC'ed too soon.
-    callback(err, written || 0, chunks);
-  }
-
-  const req = new FSReqWrap();
-  req.oncomplete = wrapper;
-  writeBuffers(fd, chunks, position, req);
-}
-
-
-WriteStream.prototype._writev = function(data, cb) {
-  if (typeof this.fd !== 'number') {
-    return this.once('open', function() {
-      this._writev(data, cb);
-    });
-  }
-
-  const self = this;
-  const len = data.length;
-  const chunks = new Array(len);
-  let size = 0;
-
-  for (var i = 0; i < len; i++) {
-    const chunk = data[i].chunk;
-
-    chunks[i] = chunk;
-    size += chunk.length;
-  }
-
-  writev(this.fd, chunks, this.pos, function(er, bytes) {
-    if (er) {
-      self.destroy();
-      return cb(er);
-    }
-    self.bytesWritten += bytes;
-    cb();
-  });
-
-  if (this.pos !== undefined)
-    this.pos += size;
-};
-
-
-WriteStream.prototype._destroy = ReadStream.prototype._destroy;
-WriteStream.prototype.close = function(cb) {
-  if (cb) {
-    if (this.closed) {
-      process.nextTick(cb);
-      return;
-    } else {
-      this.on('close', cb);
-    }
-  }
-
-  // If we are not autoClosing, we should call
-  // destroy on 'finish'.
-  if (!this.autoClose) {
-    this.on('finish', this.destroy.bind(this));
-  }
-
-  // we use end() instead of destroy() because of
-  // https://github.com/nodejs/node/issues/2006
-  this.end();
-};
-
-// There is no shutdown() for files.
-WriteStream.prototype.destroySoon = WriteStream.prototype.end;
-
-Object.defineProperty(WriteStream.prototype, 'pending', {
-  get() { return this.fd === null; },
-  configurable: true
-});
-
 module.exports = {
-  ReadStream,
-  WriteStream
+  ReadStream
 };
