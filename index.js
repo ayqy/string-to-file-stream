@@ -2,7 +2,6 @@
 
 const { Buffer } = require('buffer');
 const { Readable } = require('stream');
-const { toPathIfFileURL } = require('internal/url');
 const util = require('util');
 
 let fs;
@@ -30,9 +29,9 @@ function allocNewPool(poolSize) {
   pool.used = 0;
 }
 
-function ReadStream(path, options) {
+function ReadStream(input, options) {
   if (!(this instanceof ReadStream))
-    return new ReadStream(path, options);
+    return new ReadStream(input, options);
 
   // a little bit bigger buffer and water marks by default
   options = Object.assign(options || {});
@@ -44,13 +43,17 @@ function ReadStream(path, options) {
 
   Readable.call(this, options);
 
+  this.input = Buffer.from(input || '', options.encoding || 'utf8');
+  // fake current file position
+  this.input._position = 0;
   // path will be ignored when fd is specified, so it can be falsy
-  this.path = toPathIfFileURL(path);
+  // https://github.com/nodejs/node/blob/v10.16.3/lib/internal/url.js#L1384
+  this.path = options.path || null;
   this.fd = options.fd === undefined ? null : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
 
-  this.start = options.start;
+  this.start = options.start || 0;
   this.end = options.end;
   this.autoClose = options.autoClose === undefined ? true : options.autoClose;
   this.pos = undefined;
@@ -205,6 +208,28 @@ Object.defineProperty(ReadStream.prototype, 'pending', {
   configurable: true
 });
 
-module.exports = {
-  ReadStream
-};
+
+/**
+ * @typedef {Object} FileStreamOptions
+ * @property {string} [flags = 'r']
+ * @property {string} [encoding = 'utf8'] String encoding, 'utf8' by default.
+ * @property {number} [fd = null]
+ * @property {number} [mode = 0o666]
+ * @property {number} [autoClose = true]
+ * @property {number} [start = 0] Read bytes from specified position, start counting at 0.
+ * @property {number} [end = Infinity]
+ * @property {number} [highWaterMark = 64 * 1024]
+ * @property {string} [path = null] Fake file path, which can be relative or absolute path, null by default.
+ */
+
+/**
+ * Create file stream from a string.
+ * @param {*} str The input string.
+ * @param {FileStreamOptions} options Other options, including 'encoding', 'path' etc.
+ * @return {fs.ReadStream} https://nodejs.org/dist/latest-v10.x/docs/api/fs.html#fs_class_fs_readstream
+ */
+function string2fileStream(str, options) {
+  return new ReadStream(str, options);
+}
+
+module.exports = string2fileStream;
