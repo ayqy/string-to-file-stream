@@ -172,7 +172,7 @@ ReadStream.prototype._fakeReadFile = function(_, buffer, offset, length, positio
     }
     cb(bytesRead);
   }, 0);
-}
+};
 
 ReadStream.prototype._destroy = function(err, cb) {
   if (typeof this.fd !== 'number') {
