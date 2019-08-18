@@ -54,7 +54,7 @@ form.submit('example.org/upload', function(err, res) {
  * @property {number} [mode = 0o666]
  * @property {number} [autoClose = true]
  * @property {number} [start = 0] Read bytes from specified position, start counting at 0.
- * @property {number} [end = Infinity]
+ * @property {number} [end] Byte length of the input string.
  * @property {number} [highWaterMark = 64 * 1024]
  * @property {string} [path = null] Fake file path, which can be relative or absolute path, null by default.
  */

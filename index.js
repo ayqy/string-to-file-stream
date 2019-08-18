@@ -58,7 +58,7 @@ function ReadStream(input, options) {
       throw new Error(`The start must be a number. Received type ${typeof this.start}`);
     }
     if (this.end === undefined) {
-      this.end = Infinity;
+      this.end = this.input.byteLength - 1;
     } else if (typeof this.end !== 'number' || Number.isNaN(this.end)) {
       throw new Error(`The end must be a number. Received type ${typeof this.end}`);
     }
@@ -167,7 +167,7 @@ ReadStream.prototype._fakeReadFile = function(_, buffer, offset, length, positio
   setTimeout(() => {
     let bytesRead = 0;
     if (position < this.input.byteLength) {
-      bytesRead = this.input.copy(buffer, offset, position, position + length - 1);
+      bytesRead = this.input.copy(buffer, offset, position, position + length);
       this.input._position += bytesRead;
     }
     cb(bytesRead);
@@ -209,7 +209,7 @@ Object.defineProperty(ReadStream.prototype, 'pending', {
  * @property {number} [mode = 0o666]
  * @property {number} [autoClose = true]
  * @property {number} [start = 0] Read bytes from specified position, start counting at 0.
- * @property {number} [end = Infinity]
+ * @property {number} [end] Byte length of the input string.
  * @property {number} [highWaterMark = 64 * 1024]
  * @property {string} [path = null] Fake file path, which can be relative or absolute path, null by default.
  */
