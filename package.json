@@ -30,6 +30,8 @@
   },
   "homepage": "https://github.com/ayqy/string-to-file-stream#readme",
   "devDependencies": {
+    "form-data": "^2.5.0",
+    "formidable": "^1.2.1",
     "mocha": "^6.2.0"
   }
 }
