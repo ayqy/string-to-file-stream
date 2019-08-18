@@ -35,13 +35,16 @@ Or the more useful example, upload a fake file:
 
 ```js
 const string2fileStream = require('string-to-file-stream');
+const FormData = require('form-data');
 
 const formData = new FormData();
-formData.append('file', string2fileStream('my-string-data', { path: './abc.txt' }));
-form.submit('example.org/upload', function(err, res) {
+formData.append('filetoupload', string2fileStream('my-string-data', { path: 'no-this-file.txt' }));
+form.submit('http://127.0.0.1:8123/fileupload', function(err, res) {
   console.log(res.statusCode);
 });
 ```
+
+See [Test Cases](https://github.com/ayqy/string-to-file-stream/blob/master/test/test.js) for more details.
 
 ## API Details
 
