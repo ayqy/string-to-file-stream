@@ -32,6 +32,7 @@
   "devDependencies": {
     "form-data": "^2.5.0",
     "formidable": "^1.2.1",
+    "is-file-stream": "^1.0.0",
     "mocha": "^8.0.1"
   }
 }

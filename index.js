@@ -41,7 +41,7 @@ function ReadStream(input, options) {
   this.input._position = 0;
   // path will be ignored when fd is specified, so it can be falsy
   // https://github.com/nodejs/node/blob/v10.16.3/lib/internal/url.js#L1384
-  this.path = options.path || null;
+  this.path = options.path || 'no-this-file.txt';
   this.fd = options.fd === undefined ? null : options.fd;
   this.flags = options.flags === undefined ? 'r' : options.flags;
   this.mode = options.mode === undefined ? 0o666 : options.mode;
@@ -211,7 +211,7 @@ Object.defineProperty(ReadStream.prototype, 'pending', {
  * @property {number} [start = 0] Read bytes from specified position, start counting at 0.
  * @property {number} [end] Byte length of the input string.
  * @property {number} [highWaterMark = 64 * 1024]
- * @property {string} [path = null] Fake file path, which can be relative or absolute path, null by default.
+ * @property {string} [path = 'no-this-file.txt'] Fake file path, which can be relative or absolute path, null by default.
  */
 
 /**

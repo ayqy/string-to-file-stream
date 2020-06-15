@@ -4,8 +4,18 @@ const childProcess = require('child_process');
 const FormData = require('form-data');
 const path = require('path');
 const string2fileStream = require('../index.js');
+const isFileStream = require('is-file-stream');
 
 const input = 'success';
+
+describe('Type', () => {
+  describe(`#isFileStream(fakeFileStream)`, () => {
+    it(`should be true like exactly FileStream by default`, () => {
+      const fakeFileStream = string2fileStream(input);
+      assert.equal(isFileStream(fakeFileStream), true);
+    });
+  });
+});
 
 describe('Methods', () => {
   describe(`#pipe`, () => {
