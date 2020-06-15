@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "npx mocha"
   },
   "repository": {
     "type": "git",
@@ -32,6 +32,6 @@
   "devDependencies": {
     "form-data": "^2.5.0",
     "formidable": "^1.2.1",
-    "mocha": "^6.2.0"
+    "mocha": "^8.0.1"
   }
 }
