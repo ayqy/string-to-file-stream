@@ -36,6 +36,9 @@ function ReadStream(input, options) {
 
   Readable.call(this, options);
 
+  if (this.readableHighWaterMark === undefined)
+      this.readableHighWaterMark = options.highWaterMark
+
   this.input = Buffer.from(input || '', options.encoding || 'utf8');
   // fake current file position
   this.input._position = 0;
