@@ -84,6 +84,20 @@ npm install
 npm test
 ```
 
+## Changelog
+
+### v1.3.0
+
+- feat: Node.js < 9.3.0 supports ([#4](https://github.com/ayqy/string-to-file-stream/pull/4))
+
+### v1.2.0
+
+- feat: attach fake file path by default
+
+### v1.1.0
+
+Initial release.
+
 ## License
 
 MIT
