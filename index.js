@@ -54,7 +54,6 @@ function ReadStream(input, options) {
   this.autoClose = options.autoClose === undefined ? true : options.autoClose;
   this.pos = undefined;
   this.bytesRead = 0;
-  this.closed = false;
 
   if (this.start !== undefined) {
     if (typeof this.start !== 'number' || Number.isNaN(this.start)) {
@@ -189,7 +188,6 @@ ReadStream.prototype._destroy = function(err, cb) {
 
 function closeFsStream(stream, cb, err) {
   setTimeout(() => {
-    stream.closed = true;
     stream.emit('close');
   }, 0);
 }
