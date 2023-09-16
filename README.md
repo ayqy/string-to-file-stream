@@ -86,6 +86,10 @@ npm test
 
 ## Changelog
 
+### v2.0.0
+
+- fix: Node.js >= 18 supports ([#9](https://github.com/ayqy/string-to-file-stream/pull/9))
+
 ### v1.3.0
 
 - feat: Node.js < 9.3.0 supports ([#4](https://github.com/ayqy/string-to-file-stream/pull/4))
